@@ -8,8 +8,8 @@ RUN apt-get update && \
     sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd && \
     mkdir -p /var/run/sshd && \
 # Install JDK 11
-    sudo apt update && \
-    sudo apt install openjdk-17-jdk -y && \
+    apt update && \
+    apt install openjdk-17-jdk -y && \
 # Install maven
     apt-get install -qy maven && \
 # Cleanup old packages
