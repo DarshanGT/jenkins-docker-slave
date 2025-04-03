@@ -7,22 +7,15 @@ RUN apt-get update && \
     apt-get install -qy openssh-server && \
     sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd && \
     mkdir -p /var/run/sshd && \
-# Install JDK 11
-    apt update && \
-    apt install openjdk-17-jdk -y && \
-# Set environment variables for Maven
-ENV MAVEN_VERSION=3.9.6
-ENV M2_HOME=/opt/maven
-ENV PATH="$M2_HOME/bin:$PATH"
-
-# Install necessary dependencies and download Maven
-RUN apt-get update && \
+# Install JDK 17
+    apt-get install -qy openjdk-17-jdk && \
+# Install required dependencies
     apt-get install -qy wget tar && \
-    wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -O /tmp/maven.tar.gz && \
+# Download and install Maven 3.9.6
+    wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O /tmp/maven.tar.gz && \
     tar -xvzf /tmp/maven.tar.gz -C /opt && \
-    mv /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
+    mv /opt/apache-maven-3.9.6 /opt/maven && \
     rm /tmp/maven.tar.gz && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
 # Cleanup old packages
     apt-get -qy autoremove && \
 # Add user jenkins to the image
@@ -34,10 +27,17 @@ RUN apt-get update && \
 # Copy authorized keys
 COPY .ssh/authorized_keys /home/jenkins/.ssh/authorized_keys
 
+# Set correct ownership
 RUN chown -R jenkins:jenkins /home/jenkins/.m2/ && \
     chown -R jenkins:jenkins /home/jenkins/.ssh/
 
+# Add Maven binary to the system path
+RUN ln -s /opt/maven/bin/mvn /usr/bin/mvn
+
 # Standard SSH port
 EXPOSE 22
+
+# Verify Java and Maven installation
+RUN java -version && mvn -version
 
 CMD ["/usr/sbin/sshd", "-D"]
